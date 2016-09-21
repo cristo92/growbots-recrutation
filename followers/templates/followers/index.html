@@ -1,0 +1,18 @@
+{% if name %}
+
+<ul>
+<h2>{{ name }}</h2>
+</ul>
+
+{% else %}
+<p>
+{% if basic_list %}
+	<ul>
+		{% for i in basic_list %}
+			<li><h1>{{ i }}</h1></li>
+		{% endfor %}
+	</ul>
+{% endif %}
+</p>
+
+{% endif %}
