@@ -4,6 +4,12 @@
 <h2>{{ name }}</h2>
 </ul>
 
+<ul>
+{% for nn in friends %}
+<li>{{ nn }}</li>
+{% endfor %}
+</ul>
+
 {% else %}
 <p>
 {% if basic_list %}
