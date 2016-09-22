@@ -1,14 +1,43 @@
+<html>
+<head>
+	{% load static %}
+	<script src="{% static 'jquery.js' %}"></script>
+<script>
+	$("a[data-target=#my-modal]").click(function(event) {
+    	event.preventDefault();
+   		var target = $(this).attr("href");
+    	$("#my-modal .modal-body").load(target, function() {
+        	$("#my-modal").modal("show");
+    	});
+	});
+</script>
+</head>
+<body>
+
 {% if name %}
 
 <ul>
 <h2>{{ name }}</h2>
 </ul>
 
+<h3>First friends</h3>
 <ul>
-{% for nn in friends %}
-<li>{{ nn }}</li>
+{% for nn, image in friends %}
+<li><img src="{{ image }}"/> {{ nn }}</li>
 {% endfor %}
 </ul>
+
+<h3>Second friends</h3>
+<ul>
+{% for nn, image in snd_friends %}
+<li><img src="{{ image }}"/> {{ nn }}</li>
+{% endfor %}
+</ul>
+<div id="my-modal" class="modal hide fade in modal-body">
+<a href="my-ajax-page/load/{{ pk }}/" data-target="#my-modal">
+   Click here
+</a>
+</div>
 
 {% else %}
 <p>
@@ -22,3 +51,5 @@
 </p>
 
 {% endif %}
+
+</body>

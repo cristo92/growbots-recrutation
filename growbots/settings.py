@@ -61,6 +61,8 @@ CACHES = {
     }
 }
 
+SESSION_COOKIE_AGE = 15 * 60
+
 ROOT_URLCONF = 'growbots.urls'
 
 TEMPLATES = [

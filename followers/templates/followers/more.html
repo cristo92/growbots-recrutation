@@ -1,0 +1,10 @@
+<div>
+	<ul>
+	{% for nn, image in snd_friends %}
+	<li><img src="{{ image }}"/> {{ nn }}</li>
+	{% endfor %}
+	</ul>
+</div>
+<a href="my-ajax-page/load/{{ pk }}/" data-target="#my-modal">
+   Click here
+</a>

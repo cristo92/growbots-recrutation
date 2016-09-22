@@ -16,8 +16,11 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+from followers import views as followers
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^followers/followers', include('followers.urls')),
     url(r'^$', include('main.urls')),
+    url(r'^followers/my-ajax-page/load/(?P<pk>\d+)', followers.additional_content, name='index')
 ]
