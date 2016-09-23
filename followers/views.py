@@ -7,11 +7,11 @@ from cache import set_friends, get_friends
 import tweepy
 
 class Context(object):
-    def __init__(self, api, request):
+    def __init__(self, api, request, friends_ids_limit=0):
         self.api = api
         self.request = request
         self.limits = {
-            'friends_ids': 3,
+            'friends_ids': friends_ids_limit,
             'lookup_users': 160,
         }
 
@@ -59,7 +59,7 @@ def get_or_generate(ctx, uid):
 
     return ret
 
-def count_common_friends(ctx, frs_friends, uid, idx):
+def count_common_friends(ctx, frs_friends, uid):
     try:
         trd_friends = get_or_generate(ctx, uid)
         if not trd_friends: return -1
@@ -99,7 +99,7 @@ def index(request):
     request.session['pk'] = upk
     
     api = authorize(request)
-    ctx = Context(api, request)
+    ctx = Context(api, request, int(request.GET.get('limit', 0)))
 
     if(api):
         me = api.me()
@@ -125,8 +125,8 @@ def index(request):
             print e
 
         context['snd_friends'] = [
-            (x.screen_name, x.id, x.profile_image_url, count_common_friends(ctx, friends_ids, x.id, idx)) 
-            for idx, x in enumerate(snd_friends)
+            (x.screen_name, x.id, x.profile_image_url, count_common_friends(ctx, friends_ids, x.id)) 
+            for x in snd_friends
         ]
 
     return HttpResponse(template.render(context, request))

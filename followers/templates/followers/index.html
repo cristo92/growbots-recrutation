@@ -2,17 +2,83 @@
 <head>
 	{% load static %}
 	<script src="{% static 'jquery.js' %}"></script>
-	<!-- <script>
-		if (typeof jQuery != 'undefined') {
-
-	    alert("jQuery library is loaded!");
-
-	}else{
-
-	    alert("jQuery library is not found!");
-
-	}
-</script> -->
+	<script src="{% static 'json2.js' %}"></script>
+	<script>
+		// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
+		// to provide safe solution for csrf.
+		function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = jQuery.trim(cookies[i]);
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+		}
+		////////////////////////////////////////////////////////////////
+		function update_html(data) {
+			console.log(data);
+			var need_dely = false;
+			for(var prop in data) {
+				var v = data[prop];
+				if(v == -1) need_dely = true;
+				else {
+					var el = document.getElementById(prop.toString());
+					el.textContent = v.toString();
+					el.title = v.toString();
+				}
+			}
+			if(need_dely) {
+				setTimeout(update_friends, 60 * 1000);
+			}
+			else {
+				update_friends();
+			}
+		};
+		function update_friends() {
+			var friends = document.getElementsByClassName('common_friends_number');
+			var need_update = []; 
+			for(var i = 0; i < friends.length && need_update.length < 5; i++) {
+				if(friends.item(i).title == "-1") {
+					need_update.push(friends.item(i).id);
+				}
+			}
+			console.log(need_update);
+			if(need_update.length > 0) {
+				$.ajax({
+					type: "POST",
+					url: "followers/ajax/update.json",
+					data: { "input": need_update },
+					success: update_html,
+					dataType: "json"
+				});
+			}
+		};
+		$(document).ready(function () {
+			// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
+			// to provide safe solution for csrf.
+			function csrfSafeMethod(method) {
+			    // these HTTP methods do not require CSRF protection
+			    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+			};
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+			    beforeSend: function(xhr, settings) {
+			        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+			            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			        }
+			    }
+			});
+			////////////////////////////////////////////////////////////////
+			update_friends();
+		});
+	</script>
 </head>
 <body>
 
@@ -34,7 +100,7 @@
 <h3>Second friends</h3>
 <ul>
 {% for nn, uid, image, num_comm in snd_friends %}
-<li><img src="{{ image }}"/> @{{ nn }}  <div id="{{ uid }}" class="common_friends_number">{{num_comm}}</div> </li>
+<li><img src="{{ image }}"/> @{{ nn }}  <div id="{{ uid }}" class="common_friends_number" title="{{ num_comm }}">{{num_comm}}</div> </li>
 {% endfor %}
 </ul>
 
