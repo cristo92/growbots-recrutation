@@ -16,8 +16,7 @@
 </head>
 <body>
 
-<div id='box' > lol </div>
-<div onclick="Dajaxice.app.assign_test(Dajax.process);">Click Here!</div>
+
 
 {% if name %}
 
@@ -34,15 +33,10 @@
 
 <h3>Second friends</h3>
 <ul>
-{% for nn, image in snd_friends %}
-<li><img src="{{ image }}"/> {{ nn }}</li>
+{% for nn, uid, image, num_comm in snd_friends %}
+<li><img src="{{ image }}"/> @{{ nn }}  <div id="{{ uid }}" class="common_friends_number">{{num_comm}}</div> </li>
 {% endfor %}
 </ul>
-<div id="my-modal" class="modal hide fade in modal-body">
-<a href="my-ajax-page/load/{{ pk }}/" data-target="#my-modal">
-   Click here
-</a>
-</div>
 
 {% else %}
 <p>

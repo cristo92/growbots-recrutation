@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from functional import foldl
+from cache import set_friends, get_friends
 
 import tweepy
 
@@ -40,6 +41,41 @@ def authorize(request):
 
 FRIENDS_PER_REQUEST = 1
 
+def get_or_generate(api, uid):
+    ret = get_friends(uid)
+    if not ret:
+        ret = api.friends_ids(id=uid)
+        set_friends(uid, ret)
+
+    return ret
+
+def count_common_friends(api, frs_friends, uid, idx):
+    try:
+        if(idx < 3):
+            trd_friends = get_or_generate(api, uid)
+        else:
+            trd_friends = get_friends(user_ids)
+        if not trd_friends: return -1
+        trd_friends = sorted(trd_friends)
+        frs_friends = sorted(frs_friends)
+    except tweepy.RateLimitError:
+        return -1
+    c = 0
+    frs_iter = iter(frs_friends)
+    trd_iter = iter(trd_friends)
+    try:
+        f = frs_iter.next()
+        t = trd_iter.next()
+        while(True):
+            c += (f == t)
+            if(f < t): f = frs_iter.next()
+            else: t = trd_iter.next()
+    except StopIteration:
+        pass
+
+    return c
+
+
 def index(request):
     template = loader.get_template('followers/index.html')
     llist = range(0, 10)
@@ -58,23 +94,32 @@ def index(request):
     api = authorize(request)
 
     if(api):
-        username = api.me().name
+        me = api.me()
+        username = me.name
         context['name'] = username
 
-        friends_ids = api.friends_ids(username)
+        friends_ids = get_or_generate(api, me.id)
         friends = api.lookup_users(user_ids=friends_ids)
+        print friends
 
         context['friends'] = [(x.screen_name, x.profile_image_url) for x in friends]
         request.session['friends'] = friends_ids[FRIENDS_PER_REQUEST:]
 
         #TODO don't override limits
-        snd_friends_ids = foldl(lambda x, y: x + y, [], [api.friends_ids(id=x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
+        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(api, x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
         snd_friends = []
-        while snd_friends_ids:
-            snd_friends += api.lookup_users(user_ids=snd_friends_ids[:100])
-            del snd_friends_ids[:100]
+        try:
+            while snd_friends_ids:
+                snd_friends += api.lookup_users(user_ids=snd_friends_ids[:100])
+                del snd_friends_ids[:100]
+        except tweepy.RateLimitError as e:
+            print "Rate limits on lookup_users was overrided."
+            print e
 
-        context['snd_friends'] = [(x.screen_name, x.profile_image_url) for x in snd_friends]
+        context['snd_friends'] = [
+            (x.screen_name, x.id, x.profile_image_url, count_common_friends(api, friends_ids, x.id, idx)) 
+            for idx, x in enumerate(snd_friends)
+        ]
 
     return HttpResponse(template.render(context, request))
 
