@@ -104,7 +104,7 @@ def additional_content(request, pk):
         context['snd_friends'] = [(x.screen_name, x.profile_image_url) for x in snd_friends]
 
 
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render(context, request), content_type="application/json")
 
 """
     Class User:

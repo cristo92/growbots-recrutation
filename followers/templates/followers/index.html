@@ -2,17 +2,22 @@
 <head>
 	{% load static %}
 	<script src="{% static 'jquery.js' %}"></script>
-<script>
-	$("a[data-target=#my-modal]").click(function(event) {
-    	event.preventDefault();
-   		var target = $(this).attr("href");
-    	$("#my-modal .modal-body").load(target, function() {
-        	$("#my-modal").modal("show");
-    	});
-	});
-</script>
+	<!-- <script>
+		if (typeof jQuery != 'undefined') {
+
+	    alert("jQuery library is loaded!");
+
+	}else{
+
+	    alert("jQuery library is not found!");
+
+	}
+</script> -->
 </head>
 <body>
+
+<div id='box' > lol </div>
+<div onclick="Dajaxice.app.assign_test(Dajax.process);">Click Here!</div>
 
 {% if name %}
 
