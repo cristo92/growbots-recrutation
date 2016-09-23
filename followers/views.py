@@ -6,6 +6,15 @@ from cache import set_friends, get_friends
 
 import tweepy
 
+class Context(object):
+    def __init__(self, api, request):
+        self.api = api
+        self.request = request
+        self.limits = {
+            'friends_ids': 3,
+            'lookup_users': 160,
+        }
+
 def authorize(request):
     """ Returns api """
     consumer_key="XnZcVbUhuLyR0rkgDaXXuNcBC"
@@ -41,20 +50,18 @@ def authorize(request):
 
 FRIENDS_PER_REQUEST = 1
 
-def get_or_generate(api, uid):
+def get_or_generate(ctx, uid):
     ret = get_friends(uid)
-    if not ret:
-        ret = api.friends_ids(id=uid)
+    if ret == None and ctx.limits['friends_ids']:
+        ret = ctx.api.friends_ids(id=uid)
         set_friends(uid, ret)
+        ctx.limits['friends_ids'] -= 1
 
     return ret
 
-def count_common_friends(api, frs_friends, uid, idx):
+def count_common_friends(ctx, frs_friends, uid, idx):
     try:
-        if(idx < 3):
-            trd_friends = get_or_generate(api, uid)
-        else:
-            trd_friends = get_friends(user_ids)
+        trd_friends = get_or_generate(ctx, uid)
         if not trd_friends: return -1
         trd_friends = sorted(trd_friends)
         frs_friends = sorted(frs_friends)
@@ -92,13 +99,14 @@ def index(request):
     request.session['pk'] = upk
     
     api = authorize(request)
+    ctx = Context(api, request)
 
     if(api):
         me = api.me()
         username = me.name
         context['name'] = username
 
-        friends_ids = get_or_generate(api, me.id)
+        friends_ids = get_or_generate(ctx, me.id)
         friends = api.lookup_users(user_ids=friends_ids)
         print friends
 
@@ -106,7 +114,7 @@ def index(request):
         request.session['friends'] = friends_ids[FRIENDS_PER_REQUEST:]
 
         #TODO don't override limits
-        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(api, x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
+        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(ctx, x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
         snd_friends = []
         try:
             while snd_friends_ids:
@@ -117,7 +125,7 @@ def index(request):
             print e
 
         context['snd_friends'] = [
-            (x.screen_name, x.id, x.profile_image_url, count_common_friends(api, friends_ids, x.id, idx)) 
+            (x.screen_name, x.id, x.profile_image_url, count_common_friends(ctx, friends_ids, x.id, idx)) 
             for idx, x in enumerate(snd_friends)
         ]
 
