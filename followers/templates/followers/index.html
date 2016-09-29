@@ -22,7 +22,43 @@
 		    return cookieValue;
 		}
 		////////////////////////////////////////////////////////////////
-		function update_html(data) {
+		function update_friends_html(data) {
+			console.log("update_friends_html");
+			console.log(data);
+			var need_dely = false;
+			for(var prop in data) {
+				var flist = data[prop];
+				if(flist == null) {
+					need_dely = true;
+				}
+				else {
+					var el = document.getElementById("frs_friends_" + prop);
+					if(el == null) continue;
+					var new_html = "<ul>";
+					for(var i in flist) {
+						new_html += "<li>" + "<img src='" + flist[i][2] + "' />" + flist[i][1] + " " + "<div id=\"" + flist[i][0] + "\"class='common_friends_number' title='-1' > -1</div></li>";
+					}
+					new_html += "</ul>";
+					el.innerHTML = new_html;
+					el.removeAttribute("class");
+				}
+			}
+			var el = document.getElementById("processing");
+			if(el != null) {
+				el.style = "display: none;";
+			}
+			if(need_dely) {
+				console.log("Set timeout for 1 min.");
+				setTimeout(update_friends_numbers, 60 * 1000);
+				setTimeout(update_friends, 60 * 1000);
+			}
+			else {
+				update_friends_numbers();
+				update_friends();
+			}
+		}
+		function update_numbers_html(data) {
+			console.log("update_numbers_html");
 			console.log(data);
 			var need_dely = false;
 			for(var prop in data) {
@@ -30,21 +66,42 @@
 				if(v == -1) need_dely = true;
 				else {
 					var el = document.getElementById(prop.toString());
+					if(el == null) continue;
 					el.textContent = v.toString();
 					el.title = v.toString();
+					el.removeAttribute("class")
 				}
 			}
 			if(need_dely) {
-				setTimeout(update_friends, 60 * 1000);
+				console.log("Set timeout for 1 min.");
+				setTimeout(update_friends_numbers, 60 * 1000);
 			}
 			else {
-				update_friends();
+				update_friends_numbers();
 			}
 		};
 		function update_friends() {
+			var friends = document.getElementsByClassName('first_friends');
+			var need_update = [];
+			for(var i = 0; i < friends.length && need_update.length < 10; i++) {
+				need_update.push(friends.item(i).title);
+			}
+			console.log("Update_friends");
+			console.log(need_update);
+			if(need_update.length > 0) {
+				$.ajax({
+					type: "POST",
+					url: "followers/ajax/update_friends.json",
+					data: { "input": need_update },
+					success: update_friends_html,
+					dataType: "json"
+				});
+			}
+		}
+		function update_friends_numbers() {
 			var friends = document.getElementsByClassName('common_friends_number');
 			var need_update = []; 
-			for(var i = 0; i < friends.length && need_update.length < 5; i++) {
+			for(var i = 0; i < friends.length && need_update.length < 10; i++) {
 				if(friends.item(i).title == "-1") {
 					need_update.push(friends.item(i).id);
 				}
@@ -55,7 +112,7 @@
 					type: "POST",
 					url: "followers/ajax/update.json",
 					data: { "input": need_update },
-					success: update_html,
+					success: update_numbers_html,
 					dataType: "json"
 				});
 			}
@@ -90,19 +147,14 @@
 <h2>{{ name }}</h2>
 </ul>
 
-<h3>First friends</h3>
+<h3>Second friends</h3>
+<div id="processing" >Processing data...</div>
 <ul>
-{% for nn, image in friends %}
-<li><img src="{{ image }}"/> {{ nn }}</li>
+{% for uid in friends %}
+<div id="frs_friends_{{ uid }}" class="first_friends" title="{{ uid }}"/> </li>
 {% endfor %}
 </ul>
 
-<h3>Second friends</h3>
-<ul>
-{% for nn, uid, image, num_comm in snd_friends %}
-<li><img src="{{ image }}"/> @{{ nn }}  <div id="{{ uid }}" class="common_friends_number" title="{{ num_comm }}">{{num_comm}}</div> </li>
-{% endfor %}
-</ul>
 
 {% else %}
 <p>

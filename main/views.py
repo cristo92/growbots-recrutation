@@ -16,7 +16,7 @@ def index(request):
     context = {}
     if(request.session.get('access_token', None) and request.session.get('access_token_secret', None)):
         # TODO create generiz url
-        context = { "authorization_url": "https://localhost:8000/followers/followers" }
+        context = { "authorization_url": "https://localhost:8000/followers/followers", "auth": auth }
     else:
         context = { "authorization_url": auth.get_authorization_url(), "auth": auth }
         request.session['request_token'] = auth.request_token

@@ -53,7 +53,16 @@ FRIENDS_PER_REQUEST = 1
 def get_or_generate(ctx, uid):
     ret = get_friends(uid)
     if ret == None and ctx.limits['friends_ids']:
-        ret = ctx.api.friends_ids(id=uid)
+        try:
+            ret = ctx.api.friends_ids(id=uid)
+        except tweepy.TweepError as e:
+            if(e.reason == "Not authorized."):
+                ret = []
+            elif(e.reason == "Sorry, that page does not exist."):
+                ret = []
+            else:
+                print e
+                ret = []
         set_friends(uid, ret)
         ctx.limits['friends_ids'] -= 1
 
@@ -62,7 +71,7 @@ def get_or_generate(ctx, uid):
 def count_common_friends(ctx, frs_friends, uid):
     try:
         trd_friends = get_or_generate(ctx, uid)
-        if not trd_friends: return -1
+        if trd_friends == None: return -1
         trd_friends = sorted(trd_friends)
         frs_friends = sorted(frs_friends)
     except tweepy.RateLimitError:
@@ -94,7 +103,7 @@ def index(request):
     }
     
     api = authorize(request)
-    ctx = Context(api, request, int(request.GET.get('limit', 5)))
+    ctx = Context(api, request, int(request.GET.get('limit', 1)))
 
     if(api):
         me = request.session.get('me', None)
@@ -105,27 +114,9 @@ def index(request):
         context['name'] = username
 
         friends_ids = get_or_generate(ctx, me.id)
-        friends = api.lookup_users(user_ids=friends_ids)
-        print friends
 
-        context['friends'] = [(x.screen_name, x.profile_image_url) for x in friends]
+        context['friends'] = friends_ids
         request.session['friends'] = friends_ids
-
-        #TODO don't override limits
-        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(ctx, x) for x in friends_ids])
-        snd_friends = []
-        try:
-            while snd_friends_ids:
-                snd_friends += api.lookup_users(user_ids=snd_friends_ids[:100])
-                del snd_friends_ids[:100]
-        except tweepy.RateLimitError as e:
-            print "Rate limits on lookup_users was overrided."
-            print e
-
-        context['snd_friends'] = [
-            (x.screen_name, x.id, x.profile_image_url, count_common_friends(ctx, friends_ids, x.id)) 
-            for x in snd_friends
-        ]
 
     return HttpResponse(template.render(context, request))
 
