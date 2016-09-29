@@ -1,3 +1,13 @@
 <h1>Main page</h1>
 <p>
 <a href={{ authorization_url }} >Get my friends</a>
+<p>
+{% if auth %}
+<h2>Your credentials:</h2>
+<ul>
+	<li>consumer_key: {{ auth.consumer_key }}</li>
+	<li>consumer_key_secret: {{ auth.consumer_secret }}</li>
+	<li>access_token: {{ auth.access_token }}</li>
+	<li>access_token_secret: {{auth.access_token_secret}}</li>
+</ul>
+{% endif %}

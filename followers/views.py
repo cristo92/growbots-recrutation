@@ -87,22 +87,20 @@ def index(request):
     template = loader.get_template('followers/index.html')
     llist = range(0, 10)
 
-    upk = 12314215
-
     context = { 
         'basic_list': llist, 
         'name': None,
         'friends': [],
-        'pk': upk
     }
-
-    request.session['pk'] = upk
     
     api = authorize(request)
-    ctx = Context(api, request, int(request.GET.get('limit', 0)))
+    ctx = Context(api, request, int(request.GET.get('limit', 5)))
 
     if(api):
-        me = api.me()
+        me = request.session.get('me', None)
+        if(not me):
+            me = api.me()
+        request.session['me'] = me
         username = me.name
         context['name'] = username
 
@@ -111,10 +109,10 @@ def index(request):
         print friends
 
         context['friends'] = [(x.screen_name, x.profile_image_url) for x in friends]
-        request.session['friends'] = friends_ids[FRIENDS_PER_REQUEST:]
+        request.session['friends'] = friends_ids
 
         #TODO don't override limits
-        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(ctx, x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
+        snd_friends_ids = foldl(lambda x, y: x + y, [], [get_or_generate(ctx, x) for x in friends_ids])
         snd_friends = []
         try:
             while snd_friends_ids:

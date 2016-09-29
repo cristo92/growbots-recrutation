@@ -18,7 +18,7 @@ def index(request):
         # TODO create generiz url
         context = { "authorization_url": "https://localhost:8000/followers/followers" }
     else:
-        context = { "authorization_url": auth.get_authorization_url() }
+        context = { "authorization_url": auth.get_authorization_url(), "auth": auth }
         request.session['request_token'] = auth.request_token
 
     return HttpResponse(template.render(context, request))

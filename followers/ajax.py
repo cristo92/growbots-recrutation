@@ -18,7 +18,7 @@ def provide_data(request):
 
 	ctx = Context(api, request, friends_ids_limit=5)
 
-	frs_friends = get_or_generate(ctx, api.me().id)
+	frs_friends = request.session.get('friends', None)
 
 	print request.POST
 	guys = request.POST.getlist('input[]')
