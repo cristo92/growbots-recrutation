@@ -94,10 +94,9 @@ def count_common_friends(ctx, frs_friends, uid):
 
 def index(request):
     template = loader.get_template('followers/index.html')
-    llist = range(0, 10)
 
     context = { 
-        'basic_list': llist, 
+        'basic_list': range(0, 10), 
         'name': None,
         'friends': [],
     }
@@ -110,8 +109,7 @@ def index(request):
         if(not me):
             me = api.me()
         request.session['me'] = me
-        username = me.name
-        context['name'] = username
+        context['name'] = me.name
 
         friends_ids = get_or_generate(ctx, me.id)
 
@@ -120,33 +118,6 @@ def index(request):
 
     return HttpResponse(template.render(context, request))
 
-def additional_content(request, pk):
-    template = loader.get_template('followers/more.html')
-
-    friends_ids = request.session.get('friends', None)
-
-    print dir(request.session)
-
-    context = {
-        'pk': pk,
-        'snd_friends': [],
-    }
-
-    if(friends_ids):
-        api = authorize(request)
-        request.session['friends'] = friends_ids[FRIENDS_PER_REQUEST:]
-
-        #TODO don't override limits
-        snd_friends_ids = foldl(lambda x, y: x + y, [], [api.friends_ids(id=x) for x in friends_ids[:FRIENDS_PER_REQUEST]])
-        snd_friends = []
-        while snd_friends_ids:
-            snd_friends += api.lookup_users(user_ids=snd_friends_ids[:100])
-            del snd_friends_ids[:100]
-
-        context['snd_friends'] = [(x.screen_name, x.profile_image_url) for x in snd_friends]
-
-
-    return HttpResponse(template.render(context, request), content_type="application/json")
 
 """
     Class User:
