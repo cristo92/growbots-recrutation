@@ -1,9 +1,12 @@
 Django==1.10.1
+django-heroku-memcacheify==1.0.0
+django-pylibmc==0.6.1
 functional==0.4
 gunicorn==19.6.0
 importlib==1.0.4
 oauthlib==2.0.0
 psycopg2==2.6.2
+pylibmc==1.5.1
 requests==2.11.1
 requests-oauthlib==0.6.2
 six==1.10.0

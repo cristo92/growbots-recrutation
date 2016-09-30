@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 import sys
+from memcacheify import memcacheify
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -55,6 +56,9 @@ MIDDLEWARE = [
 
 SESSION_ENGINE="django.contrib.sessions.backends.cache"
 
+MEMCACHEIFY_USE_LOCAL=True
+CACHES = memcacheify()
+"""
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -65,8 +69,9 @@ CACHES = {
         'LOCATION': 'cache_table',
     }
 }
+"""
 
-SESSION_COOKIE_AGE = 15 * 60
+SESSION_COOKIE_AGE = 60 * 60
 
 ROOT_URLCONF = 'growbots.urls'
 
