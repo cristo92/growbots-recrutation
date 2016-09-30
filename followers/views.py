@@ -103,6 +103,7 @@ def index(request):
     
     api = authorize(request)
     ctx = Context(api, request, int(request.GET.get('limit', 1)))
+    print request.session
 
     if(api):
         me = request.session.get('me', None)
