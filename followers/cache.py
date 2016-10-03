@@ -1,13 +1,17 @@
 from django.conf import settings
 
-from django.core.cache import caches
+if(settings.DEBUG):
+	from django.core.cache import caches
+else:
+	from django.core.cache import cache
 
 import tweepy
 
 
 ALL_DAY = 60 * 60 * 24
 ALL_MONTH = ALL_DAY * 30
-cache = caches['database']
+if(settings.DEBUG):
+	cache = caches['database']
 
 class UserCompressed(object):
 	def __init__(self, uid, screen_name, profile_image_url):
