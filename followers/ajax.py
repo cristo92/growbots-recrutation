@@ -32,6 +32,7 @@ def provide_second_followers(request):
             return True
 
         ids = filter(get_user_or_generate, ids)
+        print ids
 
         try:
             while ids:
@@ -57,6 +58,8 @@ def get_followers_json(request, user_id):
         return JsonResponse({ 'message': 'You should provide user_id.' })
 
     frs_followers_ids = get_followers(user_id)
+    if not frs_followers_ids:
+        return JsonResponse({ 'message': 'Link has been expired.' })
     snd_followers_ids = []
     for uid in frs_followers_ids:
         snd_followers_ids += get_followers(uid)
@@ -64,7 +67,8 @@ def get_followers_json(request, user_id):
     ret = defaultdict(int)
     for uid in snd_followers_ids:
         user = get_user(uid)
-        ret[user.screen_name] += 1
+        if user:
+            ret[user.screen_name] += 1
 
     return JsonResponse(ret)
 

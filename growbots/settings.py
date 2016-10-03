@@ -56,21 +56,20 @@ MIDDLEWARE = [
 
 SESSION_ENGINE="django.contrib.sessions.backends.cache"
 
-CACHES = None
-if(not DEBUG):
-    MEMCACHEIFY_USE_LOCAL=True
-    CACHES = memcacheify()
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-        },
-        'database': {
-            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'cache_table',
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    },
+    'database': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000000
         }
     }
+}
 
 SESSION_COOKIE_AGE = 60 * 60
 

@@ -1,14 +1,11 @@
 from django.conf import settings
 
-if(settings.DEBUG):
-	from django.core.cache import caches
-else:
-	from django.core.cache import cache
+from django.core.cache import caches
+
 
 ALL_DAY = 60 * 60 * 24
 ALL_MONTH = ALL_DAY * 30
-if(settings.DEBUG):
-	cache = caches['database']
+cache = caches['database']
 
 class UserCompressed(object):
 	def __init__(self, uid, screen_name, profile_image_url):
