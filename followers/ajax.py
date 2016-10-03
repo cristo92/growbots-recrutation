@@ -2,13 +2,13 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from functional import foldl
-from cache import set_followers, get_followers
 from django.views.decorators.cache import cache_page
+from collections import defaultdict
 
 import tweepy
 
 from views import authorize, Context, get_or_generate
-from cache import get_user, set_user
+from cache import get_user, set_user, get_followers
 
 @cache_page(60 * 60)
 def provide_second_followers(request):
@@ -51,3 +51,20 @@ def provide_second_followers(request):
         ret[guy] = map(lambda x: { "id": x.id, "name": x.screen_name, "image_url": x.profile_image_url}, snd_followers)
 
     return JsonResponse(ret)
+
+def get_followers_json(request, user_id):
+    if not user_id:
+        return JsonResponse({ 'message': 'You should provide user_id.' })
+
+    frs_followers_ids = get_followers(user_id)
+    snd_followers_ids = []
+    for uid in frs_followers_ids:
+        snd_followers_ids += get_followers(uid)
+
+    ret = defaultdict(int)
+    for uid in snd_followers_ids:
+        user = get_user(uid)
+        ret[user.screen_name] += 1
+
+    return JsonResponse(ret)
+

@@ -68,6 +68,7 @@ def index(request):
 
     context = { 
         'name': None,
+        'my_id': None,
         'followers': [],
     }
     
@@ -81,6 +82,7 @@ def index(request):
             me = api.me()
         request.session['me'] = me
         context['name'] = me.name
+        context['my_id'] = me.id
 
         followers_ids = get_or_generate(ctx, me.id)
         print followers_ids

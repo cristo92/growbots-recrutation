@@ -55,7 +55,7 @@
 				}
 			}
 
-			var el = document.getElementById("processing");
+			var el = document.getElementById("processing_status");
 			if(el != null) {
 				el.style = "display: none;";
 			}
@@ -89,6 +89,11 @@
 					success: update_followers_html,
 					dataType: "json"
 				});
+			}
+			else {
+				var el = document.getElementById("processing_status");
+				el.style = "display: inline;";
+				el.innerHTML = "<a href='" + "{% url 'get_followers' my_id %}" + "'>Get JSON of content.</a>";
 			}
 		}
 
@@ -126,7 +131,7 @@
 </ul>
 
 <h3>Second followers</h3>
-<div id="processing" >Processing data...</div>
+<div id="processing_status" >Processing data...</div>
 <ul>
 {% for uid in followers %}
 <li><div id="frs_followers_{{ uid }}" class="first_followers" title="{{ uid }}">Processing data...</div> </li>
