@@ -1,18 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
-from functional import foldl
-from cache import set_followers, get_followers
+from cache import set_followers, get_followers, get_or_generate, Context
 
 import tweepy
-
-class Context(object):
-    def __init__(self, api, request, followers_ids_limit=5):
-        self.api = api
-        self.request = request
-        self.limits = {
-            'followers_ids': followers_ids_limit,
-        }
 
 def authorize(request):
     """ Returns api """
@@ -46,22 +37,6 @@ def authorize(request):
         api = tweepy.API(auth)
 
     return api
-
-def get_or_generate(ctx, uid):
-    ret = get_followers(uid)
-    if ret == None and ctx.limits['followers_ids']:
-        try:
-            ret = ctx.api.followers_ids(id=uid)
-        except tweepy.RateLimitError:
-            ret = None
-        except tweepy.TweepError:
-            ret = []
-
-        if ret != None:
-            set_followers(uid, ret)
-        ctx.limits['followers_ids'] -= 1
-
-    return ret or []
 
 def index(request):
     template = loader.get_template('followers/index.html')
