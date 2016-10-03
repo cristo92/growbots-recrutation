@@ -7,37 +7,7 @@ from django.views.decorators.cache import cache_page
 
 import tweepy
 
-from views import authorize, Context, count_common_followers, get_or_generate
-
-@cache_page(60 * 60)
-def provide_data(request):
-    print request.session.get('access_token', 'no token :(')
-    print request.session.get('access_token_secret', 'no token :(')
-
-    api = authorize(request)
-    if not api:
-        return JsonResponse({ 'message': 'Session expired.' })
-
-    ctx = Context(api, request, followers_ids_limit=5)
-
-    frs_followers = request.session.get('followers', None)
-
-    print request.POST
-    guys = request.POST.getlist('input[]')
-    print guys
-    ret = {}
-    for guy in guys:
-        print guy
-        try:
-            ret[guy] = count_common_followers(ctx, frs_followers, int(guy))
-        except tweepy.TweepError as e:
-            if(e.reason == "Not authorized."):
-                ret[guy] = "Protected."
-            elif(e.reason == "Sorry, that page does not exist."):
-                ret[guy] = "Removed."
-            else:
-                print e
-    return JsonResponse(ret)
+from views import authorize, Context, get_or_generate
 
 @cache_page(60 * 60)
 def provide_second_followers(request):
@@ -50,22 +20,18 @@ def provide_second_followers(request):
     print guys
     ret = {}
     for guy in guys:
+        ids = get_or_generate(ctx, int(guy))
+        snd_followers = []
         try:
-            ids = get_or_generate(ctx, int(guy))
-            snd_followers = []
-            try:
-                while ids:
-                    snd_followers += api.lookup_users(user_ids=ids[:100])
-                    del ids[:100]
-            except tweepy.RateLimitError as e:
-                print "Rate limits on lookup_users was overrided."
-                print e
-            ret[guy] = map(lambda x: [x.id, x.screen_name, x.profile_image_url], snd_followers)
-        except tweepy.TweepError as e:
-            if(e.reason == "Not authorized."):
-                ret[guy] = []
-            elif(e.reason == "Sorry, that page does not exist."):
-                ret[guy] = []
-            else:
-                print e
+            while ids:
+                # TODO - control number of lookup_users to avoid exceeding limits
+                snd_followers += api.lookup_users(user_ids=ids[:100])
+                del ids[:100]
+        except tweepy.RateLimitError as e:
+            # TODO - Don't just print error - we need solution to replay getting information 
+            #        about users (i.e. lookup_users) from this point
+            print "Rate limits on lookup_users was exeeded."
+            print e
+        ret[guy] = map(lambda x: { "id": x.id, "name": x.screen_name, "image_url": x.profile_image_url}, snd_followers)
+
     return JsonResponse(ret)

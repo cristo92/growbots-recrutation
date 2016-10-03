@@ -4,6 +4,7 @@
 	<script src="{% static 'jquery.js' %}"></script>
 	<script src="{% static 'json2.js' %}"></script>
 	<script>
+		////////////////////// BEGIN OF CSRF ////////////////////////
 		// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
 		// to provide safe solution for csrf.
 		function getCookie(name) {
@@ -21,11 +22,15 @@
 		    }
 		    return cookieValue;
 		}
-		////////////////////////////////////////////////////////////////
+		////////////////////// END OF CSRF //////////////////////////
+
+
 		function update_followers_html(data) {
 			console.log("update_followers_html");
 			console.log(data);
+
 			var need_dely = false;
+
 			for(var prop in data) {
 				var flist = data[prop];
 				if(flist == null) {
@@ -36,9 +41,10 @@
 					if(el == null) continue;
 					var new_html = "<ul>";
 					for(var i in flist) {
-						var snd_friend = document.getElementById(flist[i][0].toString());
+						var snd_friend = document.getElementById(flist[i]['id'].toString());
 						if(snd_friend == null) 
-							new_html += "<li>" + "<img src='" + flist[i][2] + "' />" + flist[i][1] + " " + "<input id=\"" + flist[i][0] + "\"class='common_followers_number' type='int' value=1 /> " + flist[i][0] + "</li>";
+							new_html += "<li>" + "<img src='" + flist[i]['image_url'] + "' />" + flist[i]['name'] + " " + "<input id=\"" + 
+						           flist[i]['id'] + "\"class='common_followers_number' type='int' value=1 /> " + flist[i]['id'] + "</li>";
 						else {
 							snd_friend.value = parseInt(snd_friend.value) + 1;
 						}
@@ -48,10 +54,12 @@
 					el.removeAttribute("class");
 				}
 			}
+
 			var el = document.getElementById("processing");
 			if(el != null) {
 				el.style = "display: none;";
 			}
+
 			if(need_dely) {
 				console.log("Set timeout for 1 min.");
 				setTimeout(update_followers, 60 * 1000);
@@ -60,14 +68,19 @@
 				update_followers();
 			}
 		}
+
+
 		function update_followers() {
 			var followers = document.getElementsByClassName('first_followers');
 			var need_update = [];
+
 			for(var i = 0; i < followers.length && need_update.length < 10; i++) {
 				need_update.push(followers.item(i).title);
 			}
+
 			console.log("Update_followers");
 			console.log(need_update);
+
 			if(need_update.length > 0) {
 				$.ajax({
 					type: "POST",
@@ -78,7 +91,10 @@
 				});
 			}
 		}
+
+		
 		$(document).ready(function () {
+			////////////////////// BEGIN OF CSRF ////////////////////////
 			// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
 			// to provide safe solution for csrf.
 			function csrfSafeMethod(method) {
@@ -93,7 +109,8 @@
 			        }
 			    }
 			});
-			////////////////////////////////////////////////////////////////
+			////////////////////// END OF CSRF //////////////////////////
+
 			update_followers();
 		});
 	</script>
@@ -119,13 +136,7 @@
 
 {% else %}
 <p>
-{% if basic_list %}
-	<ul>
-		{% for i in basic_list %}
-			<li><h1>{{ i }}</h1></li>
-		{% endfor %}
-	</ul>
-{% endif %}
+<h2>Not signed in.</h2>
 </p>
 
 {% endif %}

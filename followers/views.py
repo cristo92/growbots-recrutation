@@ -12,7 +12,6 @@ class Context(object):
         self.request = request
         self.limits = {
             'followers_ids': followers_ids_limit,
-            'lookup_users': 160,
         }
 
 def authorize(request):
@@ -53,54 +52,27 @@ def get_or_generate(ctx, uid):
     if ret == None and ctx.limits['followers_ids']:
         try:
             ret = ctx.api.followers_ids(id=uid)
-        except tweepy.TweepError as e:
-            if(e.reason == "Not authorized."):
-                ret = []
-            elif(e.reason == "Sorry, that page does not exist."):
-                ret = []
-            else:
-                print e
-                ret = []
-        set_followers(uid, ret)
+        except tweepy.RateLimitError:
+            ret = None
+        except tweepy.TweepError:
+            ret = []
+            
+        if ret != None:
+            set_followers(uid, ret)
         ctx.limits['followers_ids'] -= 1
 
-    return ret
-
-def count_common_followers(ctx, frs_followers, uid):
-    try:
-        trd_followers = get_or_generate(ctx, uid)
-        if trd_followers == None: return -1
-        trd_followers = sorted(trd_followers)
-        frs_followers = sorted(frs_followers)
-    except tweepy.RateLimitError:
-        return -1
-    c = 0
-    frs_iter = iter(frs_followers)
-    trd_iter = iter(trd_followers)
-    try:
-        f = frs_iter.next()
-        t = trd_iter.next()
-        while(True):
-            c += (f == t)
-            if(f < t): f = frs_iter.next()
-            else: t = trd_iter.next()
-    except StopIteration:
-        pass
-
-    return c
-
+    return ret or []
 
 def index(request):
     template = loader.get_template('followers/index.html')
 
     context = { 
-        'basic_list': range(0, 10), 
         'name': None,
         'followers': [],
     }
     
     api = authorize(request)
-    ctx = Context(api, request, int(request.GET.get('limit', 1)))
+    ctx = Context(api, request)
     print request.session
 
     if(api):
