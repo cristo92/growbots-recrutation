@@ -23,12 +23,12 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '*@k4&og24)z7y5qs&kv@u2zammm-$zn&02mi!2trjn1@z$m3#%'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.still-retreat-54855.herokuapp.com']
 
 
 # Application definition
@@ -75,6 +75,8 @@ else:
     }
 
 SESSION_COOKIE_AGE = 60 * 60
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'growbots.urls'
 

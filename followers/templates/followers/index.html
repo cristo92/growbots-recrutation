@@ -3,6 +3,7 @@
 	{% load static %}
 	<script src="{% static 'jquery.js' %}"></script>
 	<script src="{% static 'json2.js' %}"></script>
+	{% if name %}
 	<script>
 		////////////////////// BEGIN OF CSRF ////////////////////////
 		// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
@@ -93,7 +94,7 @@
 			else {
 				var el = document.getElementById("processing_status");
 				el.style = "display: inline;";
-				el.innerHTML = "<a href='" + "{% url 'get_followers' my_id %}" + "'>Get JSON of content.</a>";
+				el.innerHTML = "<a href='" + "{% url 'get_followers_json' my_id %}" + "'>Get JSON of content.</a>";
 			}
 		}
 
@@ -119,6 +120,7 @@
 			update_followers();
 		});
 	</script>
+	{% endif %}
 </head>
 <body>
 
