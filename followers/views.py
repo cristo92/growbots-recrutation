@@ -7,7 +7,7 @@ from cache import set_followers, get_followers
 import tweepy
 
 class Context(object):
-    def __init__(self, api, request, followers_ids_limit=0):
+    def __init__(self, api, request, followers_ids_limit=5):
         self.api = api
         self.request = request
         self.limits = {
@@ -56,7 +56,7 @@ def get_or_generate(ctx, uid):
             ret = None
         except tweepy.TweepError:
             ret = []
-            
+
         if ret != None:
             set_followers(uid, ret)
         ctx.limits['followers_ids'] -= 1
@@ -83,6 +83,7 @@ def index(request):
         context['name'] = me.name
 
         followers_ids = get_or_generate(ctx, me.id)
+        print followers_ids
 
         context['followers'] = followers_ids
         request.session['followers'] = followers_ids

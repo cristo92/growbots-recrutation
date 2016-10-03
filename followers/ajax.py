@@ -8,6 +8,7 @@ from django.views.decorators.cache import cache_page
 import tweepy
 
 from views import authorize, Context, get_or_generate
+from cache import get_user, set_user
 
 @cache_page(60 * 60)
 def provide_second_followers(request):
@@ -22,10 +23,25 @@ def provide_second_followers(request):
     for guy in guys:
         ids = get_or_generate(ctx, int(guy))
         snd_followers = []
+
+        def get_user_or_generate(uid):
+            user = get_user(uid)
+            if(user):
+                snd_followers.append(user)
+                return False
+            return True
+
+        ids = filter(get_user_or_generate, ids)
+
         try:
             while ids:
                 # TODO - control number of lookup_users to avoid exceeding limits
-                snd_followers += api.lookup_users(user_ids=ids[:100])
+                more_users = api.lookup_users(user_ids=ids[:100])
+
+                for user in more_users:
+                    set_user(user.id, user)
+                snd_followers += more_users
+
                 del ids[:100]
         except tweepy.RateLimitError as e:
             # TODO - Don't just print error - we need solution to replay getting information 
