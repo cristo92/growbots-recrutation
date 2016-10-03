@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
+from django.views.decorators.csrf import ensure_csrf_cookie
 from cache import set_followers, get_followers, get_or_generate, Context
 
 import tweepy
@@ -38,6 +39,7 @@ def authorize(request):
 
     return api
 
+@ensure_csrf_cookie
 def index(request):
     template = loader.get_template('followers/index.html')
 
