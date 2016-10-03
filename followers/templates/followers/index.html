@@ -22,8 +22,8 @@
 		    return cookieValue;
 		}
 		////////////////////////////////////////////////////////////////
-		function update_friends_html(data) {
-			console.log("update_friends_html");
+		function update_followers_html(data) {
+			console.log("update_followers_html");
 			console.log(data);
 			var need_dely = false;
 			for(var prop in data) {
@@ -32,11 +32,16 @@
 					need_dely = true;
 				}
 				else {
-					var el = document.getElementById("frs_friends_" + prop);
+					var el = document.getElementById("frs_followers_" + prop);
 					if(el == null) continue;
 					var new_html = "<ul>";
 					for(var i in flist) {
-						new_html += "<li>" + "<img src='" + flist[i][2] + "' />" + flist[i][1] + " " + "<div id=\"" + flist[i][0] + "\"class='common_friends_number' title='-1' > -1</div></li>";
+						var snd_friend = document.getElementById(flist[i][0].toString());
+						if(snd_friend == null) 
+							new_html += "<li>" + "<img src='" + flist[i][2] + "' />" + flist[i][1] + " " + "<input id=\"" + flist[i][0] + "\"class='common_followers_number' type='int' value=1 /> " + flist[i][0] + "</li>";
+						else {
+							snd_friend.value = parseInt(snd_friend.value) + 1;
+						}
 					}
 					new_html += "</ul>";
 					el.innerHTML = new_html;
@@ -49,74 +54,30 @@
 			}
 			if(need_dely) {
 				console.log("Set timeout for 1 min.");
-				setTimeout(update_friends_numbers, 60 * 1000);
-				setTimeout(update_friends, 60 * 1000);
+				setTimeout(update_followers, 60 * 1000);
 			}
 			else {
-				update_friends_numbers();
-				update_friends();
+				update_followers();
 			}
 		}
-		function update_numbers_html(data) {
-			console.log("update_numbers_html");
-			console.log(data);
-			var need_dely = false;
-			for(var prop in data) {
-				var v = data[prop];
-				if(v == -1) need_dely = true;
-				else {
-					var el = document.getElementById(prop.toString());
-					if(el == null) continue;
-					el.textContent = v.toString();
-					el.title = v.toString();
-					el.removeAttribute("class")
-				}
-			}
-			if(need_dely) {
-				console.log("Set timeout for 1 min.");
-				setTimeout(update_friends_numbers, 60 * 1000);
-			}
-			else {
-				update_friends_numbers();
-			}
-		};
-		function update_friends() {
-			var friends = document.getElementsByClassName('first_friends');
+		function update_followers() {
+			var followers = document.getElementsByClassName('first_followers');
 			var need_update = [];
-			for(var i = 0; i < friends.length && need_update.length < 10; i++) {
-				need_update.push(friends.item(i).title);
+			for(var i = 0; i < followers.length && need_update.length < 10; i++) {
+				need_update.push(followers.item(i).title);
 			}
-			console.log("Update_friends");
+			console.log("Update_followers");
 			console.log(need_update);
 			if(need_update.length > 0) {
 				$.ajax({
 					type: "POST",
-					url: "followers/ajax/update_friends.json",
+					url: "followers/ajax/update_followers.json",
 					data: { "input": need_update },
-					success: update_friends_html,
+					success: update_followers_html,
 					dataType: "json"
 				});
 			}
 		}
-		function update_friends_numbers() {
-			var friends = document.getElementsByClassName('common_friends_number');
-			var need_update = []; 
-			for(var i = 0; i < friends.length && need_update.length < 10; i++) {
-				if(friends.item(i).title == "-1") {
-					need_update.push(friends.item(i).id);
-				}
-			}
-			console.log(need_update);
-			if(need_update.length > 0) {
-				$.ajax({
-					type: "POST",
-					url: "followers/ajax/update.json",
-					data: { "input": need_update },
-					success: update_numbers_html,
-					dataType: "json"
-				});
-			}
-		};
 		$(document).ready(function () {
 			// Code from https://docs.djangoproject.com/en/1.10/ref/csrf/
 			// to provide safe solution for csrf.
@@ -133,7 +94,7 @@
 			    }
 			});
 			////////////////////////////////////////////////////////////////
-			update_friends();
+			update_followers();
 		});
 	</script>
 </head>
@@ -147,11 +108,11 @@
 <h2>{{ name }}</h2>
 </ul>
 
-<h3>Second friends</h3>
+<h3>Second followers</h3>
 <div id="processing" >Processing data...</div>
 <ul>
-{% for uid in friends %}
-<div id="frs_friends_{{ uid }}" class="first_friends" title="{{ uid }}"/> </li>
+{% for uid in followers %}
+<li><div id="frs_followers_{{ uid }}" class="first_followers" title="{{ uid }}">Processing data...</div> </li>
 {% endfor %}
 </ul>
 

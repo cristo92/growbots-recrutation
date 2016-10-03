@@ -2,16 +2,16 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from functional import foldl
-from cache import set_friends, get_friends
+from cache import set_followers, get_followers
 
 import tweepy
 
 class Context(object):
-    def __init__(self, api, request, friends_ids_limit=0):
+    def __init__(self, api, request, followers_ids_limit=0):
         self.api = api
         self.request = request
         self.limits = {
-            'friends_ids': friends_ids_limit,
+            'followers_ids': followers_ids_limit,
             'lookup_users': 160,
         }
 
@@ -48,13 +48,11 @@ def authorize(request):
 
     return api
 
-FRIENDS_PER_REQUEST = 1
-
 def get_or_generate(ctx, uid):
-    ret = get_friends(uid)
-    if ret == None and ctx.limits['friends_ids']:
+    ret = get_followers(uid)
+    if ret == None and ctx.limits['followers_ids']:
         try:
-            ret = ctx.api.friends_ids(id=uid)
+            ret = ctx.api.followers_ids(id=uid)
         except tweepy.TweepError as e:
             if(e.reason == "Not authorized."):
                 ret = []
@@ -63,22 +61,22 @@ def get_or_generate(ctx, uid):
             else:
                 print e
                 ret = []
-        set_friends(uid, ret)
-        ctx.limits['friends_ids'] -= 1
+        set_followers(uid, ret)
+        ctx.limits['followers_ids'] -= 1
 
     return ret
 
-def count_common_friends(ctx, frs_friends, uid):
+def count_common_followers(ctx, frs_followers, uid):
     try:
-        trd_friends = get_or_generate(ctx, uid)
-        if trd_friends == None: return -1
-        trd_friends = sorted(trd_friends)
-        frs_friends = sorted(frs_friends)
+        trd_followers = get_or_generate(ctx, uid)
+        if trd_followers == None: return -1
+        trd_followers = sorted(trd_followers)
+        frs_followers = sorted(frs_followers)
     except tweepy.RateLimitError:
         return -1
     c = 0
-    frs_iter = iter(frs_friends)
-    trd_iter = iter(trd_friends)
+    frs_iter = iter(frs_followers)
+    trd_iter = iter(trd_followers)
     try:
         f = frs_iter.next()
         t = trd_iter.next()
@@ -98,7 +96,7 @@ def index(request):
     context = { 
         'basic_list': range(0, 10), 
         'name': None,
-        'friends': [],
+        'followers': [],
     }
     
     api = authorize(request)
@@ -112,10 +110,10 @@ def index(request):
         request.session['me'] = me
         context['name'] = me.name
 
-        friends_ids = get_or_generate(ctx, me.id)
+        followers_ids = get_or_generate(ctx, me.id)
 
-        context['friends'] = friends_ids
-        request.session['friends'] = friends_ids
+        context['followers'] = followers_ids
+        request.session['followers'] = followers_ids
 
     return HttpResponse(template.render(context, request))
 

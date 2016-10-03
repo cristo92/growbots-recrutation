@@ -15,3 +15,9 @@ def set_friends(uid, friends):
 
 def get_friends(uid):
 	return cache.get("__user__" + str(uid))
+
+def set_followers(uid, followers):
+	cache.set("fl_" + str(uid), followers, ALL_MONTH)
+
+def get_followers(uid):
+	return cache.get("fl_" + str(uid))
